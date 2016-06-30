@@ -1,2 +1,23 @@
 ---
 # Default networking variables for Raspberry Pi cluster.
+
+network:
+  netmask: "{{ ansible_default_ipv4['netmask'] }}"
+  gateway: "{{ ansible_default_ipv4['gateway'] }}"
+  network: "{{ ansible_default_ipv4['network'] }}"
+  # Change these settings to configure WiFi on your cluster.
+  wifi:
+    enabled: false
+    ssid: "default"
+    password: ""
+
+old_hostname: "{{ ansible_hostname }}"
+
+templates: |
+  ["interfaces.j2",
+  "dhcpcd.conf.j2",
+  "wpa_supplicant.conf.j2"]
+destinations: |
+  ["/etc/network/interfaces",
+  "/etc/dhcpcd.conf",
+  "/etc/wpa_supplicant/wpa_supplicant.conf"]
