@@ -1,0 +1,7 @@
+---
+# Tasks for setting up SSH on a Raspberry Pi cluster.
+
+- name: Install SSH Packages
+  apt: name={{ item }} state=installed
+  with_items:
+    - python3-paramiko

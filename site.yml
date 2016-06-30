@@ -1,2 +1,20 @@
 ---
 # Main playbook for bootstrapping a Raspberry Pi cluster.
+
+- hosts: all
+  become: yes
+  remote_user: pi
+
+  pre_tasks:
+
+  roles:
+    - common
+    - networking
+    - ssh
+
+- hosts: master
+  become: yes
+  remote_user: pi
+
+  roles:
+    - ansible

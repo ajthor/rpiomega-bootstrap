@@ -1,0 +1,12 @@
+---
+# Set up Ansible.
+
+- name: Get Git Repo
+  git:
+    repo: "git://github.com/ansible/ansible.git"
+    dest: "/usr/bin"
+    clone: yes
+    recursive: yes
+
+- name: Run Environment Setup
+  shell: source /usr/bin/hacking/env-setup

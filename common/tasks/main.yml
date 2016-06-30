@@ -6,6 +6,6 @@
   with_items:
     - gcc
     - make
-    - python3.4
     - git
+    - python3.4
     - golang
