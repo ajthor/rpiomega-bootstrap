@@ -1,2 +1,11 @@
 ---
 # Common ansible role for Raspberry Pi cluster.
+
+- name: Install Core Packages
+  apt: name={{ item }} state=installed
+  with_items:
+    - gcc
+    - make
+    - python3.4
+    - git
+    - golang
