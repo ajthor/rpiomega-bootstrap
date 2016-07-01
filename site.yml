@@ -23,4 +23,3 @@
   remote_user: pi
 
   roles:
-    - ansible
