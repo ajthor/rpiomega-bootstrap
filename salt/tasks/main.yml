@@ -34,12 +34,33 @@
 - name: Configure Salt With Static IP
   lineinfile: |
     dest="/etc/salt/master"
-    regexp='^interface'
+    regexp='^#?interface:'
     line="interface: {{ ip_address }}"
+    state=present
   when: type == "master"
+
+- name: Get Master Fingerprint
+  delegate_to: "rpiomega-master.local"
+  command: salt-key -F master | grep -oP "(?<=master\.pub\:\s\s).*$"
+  register: master_fingerprint
 
 - name: Configure Salt With Master
   lineinfile: |
     dest="/etc/salt/minion"
-    regexp='^master'
-    line="interface: {{ master_ip }}"
+    regexp='^#?master:'
+    line="master: rpiomega-master"
+    state=present
+
+- name: Add Master Fingerprint to Minion
+  lineinfile: |
+    dest="/etc/salt/minion"
+    regexp='^#?master_finger:'
+    line="master_finger: '{{ master_fingerprint }}'"
+  notify:
+    - Restart Server
+    - Wait For Server to Restart
+
+- name: Accept Keys On Salt Master
+  delegate_to: "rpiomega-master.local"
+  become: yes
+  command: salt-key -A
