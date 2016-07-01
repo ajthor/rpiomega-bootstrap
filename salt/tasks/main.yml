@@ -5,13 +5,18 @@
   apt_repository: |
     repo="deb http://archive.raspbian.org/raspbian/ stretch main"
     state=present
-    update_cache="yes"
+
+- name: Ensure apt.conf.d/10apt Exists
+  file: path="/etc/apt/apt.conf.d/10apt" state=touch
 
 - name: Make Jessie a Default Release
   lineinfile: |
     dest="/etc/apt/apt.conf.d/10apt"
     regexp='^'
     line="APT::Default-Release {{ '\"' }}jessie{{ '\"' }};"
+
+- name: Update Apt Cache
+  apt: update_cache="yes"
 
 - name: Install Dependencies
   apt: name={{ item }} state=installed
@@ -42,6 +47,7 @@
 - name: Get Master Fingerprint
   delegate_to: "rpiomega-master.local"
   command: salt-key -F master | grep -oP "(?<=master\.pub\:\s\s).*$"
+  always_run: True
   register: master_fingerprint
 
 - name: Configure Salt With Master
@@ -62,5 +68,4 @@
 
 - name: Accept Keys On Salt Master
   delegate_to: "rpiomega-master.local"
-  become: yes
   command: salt-key -A

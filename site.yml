@@ -6,7 +6,8 @@
   remote_user: pi
 
   pre_tasks:
-    - fail: msg="Must specify '{{ item }}' in command line."
+    - name: Fail If Default Variables Are Undefined
+      fail: msg="Must specify '{{ item }}' in command line."
       when: item is not defined
       with_items:
         - ip_address
