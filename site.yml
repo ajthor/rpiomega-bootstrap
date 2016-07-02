@@ -1,0 +1,21 @@
+---
+# Main playbook for bootstrapping a Raspberry Pi cluster.
+
+- hosts: all
+  become: yes
+  remote_user: pi
+
+  pre_tasks:
+    - name: Fail If Default Variables Are Undefined
+      fail: msg="Must specify '{{ item }}' in command line."
+      when: item is not defined
+      with_items:
+        - ip_address
+        - hostname
+        - type
+
+  roles:
+    - common
+    - networking
+    - ssh
+    - salt

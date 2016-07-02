@@ -1,0 +1,26 @@
+---
+# Tasks for networking.
+
+- name: Apply Networking Configuration
+  template:
+    src: "{{ item.0 }}"
+    dest: "{{ item.1 }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_together:
+    - "{{ templates }}"
+    - "{{ destinations }}"
+  notify:
+    - Restart Server
+    - Wait For Server to Restart
+
+- name: Change Hostname
+  hostname: name={{ hostname }}
+
+- name: Update /etc/hosts
+  replace: dest="/etc/hosts" regexp="{{ old_hostname }}" replace="{{ hostname }}"
+  notify:
+    - Restart Networking
+    - Restart Server
+    - Wait For Server to Restart

@@ -1,0 +1,15 @@
+country=US
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+
+network={
+   ssid="{{ network['wifi']['ssid'] }}"
+   psk="{{ network['wifi']['password'] }}"
+#   scan_ssid=1
+#   proto=WPA2          # can be RSN (for WPA2) or WPA (for WPA1)
+#   key_mgmt=WPA-PSK    # can be WPA-PSK or WPA_EAP (for enterprise networks)
+#   pairwise=CCMP TKIP  # can be CCMP( for WPA2) or TKIP (for WPA1), or both
+#   auth_alg=OPEN       # can be OPEN, LEAP and SHARED
+#   group=CCMP TKIP
+#   priority=1
+}

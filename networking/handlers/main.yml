@@ -1,0 +1,16 @@
+---
+# handlers for networking role.
+
+- name: Restart Networking
+  service: name=networking state=restarted
+
+- name: Restart Server
+  # command: shutdown -r now
+  command: sudo reboot
+  async: 1
+  poll: 0
+  ignore_errors: true
+
+- name: Wait For Server to Restart
+  local_action: wait_for host="{{ ip_address }}" port=22 state=drained delay=1 timeout=300
+  become: false

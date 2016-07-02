@@ -1,0 +1,7 @@
+---
+# Default variables for salt installation.
+
+salt_repository: "deb http://archive.raspbian.org/raspbian/ stretch main"
+salt_default_release: "stretch"
+
+salt_base_dir: "/srv/salt"
