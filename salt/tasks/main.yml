@@ -6,34 +6,40 @@
     repo="deb http://archive.raspbian.org/raspbian/ stretch main"
     state=present
 
-- name: Ensure apt.conf.d/10apt Exists
-  file: path="/etc/apt/apt.conf.d/10apt" state=touch
+- name: Add Raspbian Stretch Repo To /etc/apt/sources.list
+  lineinfile: |
+    dest="/etc/apt/sources.list"
+    regexp='^'
+    line="deb http://archive.raspbian.org/raspbian/ stretch main"
+    state=present
 
 - name: Make Jessie a Default Release
   lineinfile: |
     dest="/etc/apt/apt.conf.d/10apt"
     regexp='^'
     line="APT::Default-Release {{ '\"' }}jessie{{ '\"' }};"
+    state=present
+    create=yes
 
 - name: Update Apt Cache
   apt: update_cache="yes"
 
 - name: Install Dependencies
-  apt: name={{ item }} state=installed
+  apt: name="{{ item }}" state=present default_release=stretch
   with_items:
     - python-zmq
-    - python-tornado/stretch
-    - salt-common/stretch
+    - python-tornado
+    - salt-common
 
 - name: Install Salt Minion
-  apt: name={{ item }} state=installed
+  apt: name={{ item }} state=latest default_release=stretch
   with_items:
-    - salt-minion/stretch
+    - salt-minion
 
 - name: Install Salt Master
-  apt: name={{ item }} state=installed
+  apt: name={{ item }} state=latest default_release=stretch
   with_items:
-    - salt-master/stretch
+    - salt-master
   when: type == "master"
 
 - name: Configure Salt With Static IP
@@ -46,7 +52,7 @@
 
 - name: Get Master Fingerprint
   delegate_to: "rpiomega-master.local"
-  command: salt-key -F master | grep -oP "(?<=master\.pub\:\s\s).*$"
+  shell: salt-key -F master | grep -oP "(?<=master\.pub\:\s\s).*$"
   always_run: True
   register: master_fingerprint
 
@@ -54,18 +60,20 @@
   lineinfile: |
     dest="/etc/salt/minion"
     regexp='^#?master:'
-    line="master: rpiomega-master"
+    line="master: rpiomega-master.local"
     state=present
 
 - name: Add Master Fingerprint to Minion
   lineinfile: |
     dest="/etc/salt/minion"
     regexp='^#?master_finger:'
-    line="master_finger: '{{ master_fingerprint }}'"
+    line="master_finger: '{{ master_fingerprint['stdout'] }}'"
   notify:
     - Restart Server
     - Wait For Server to Restart
 
 - name: Accept Keys On Salt Master
   delegate_to: "rpiomega-master.local"
-  command: salt-key -A
+  become: yes
+  shell: salt-key -a {{ ansible_hostname }} -y
+  always_run: True
