@@ -1,10 +1,10 @@
 ---
 # Tasks for setting up SSH on a Raspberry Pi cluster.
 
-- name: Generate SSH Key
-  user:
-    name: "{{ ansible_ssh_user }}"
-    generate_ssh_key: yes
+# - name: Generate SSH Key
+#   user:
+#     name: "{{ ansible_ssh_user }}"
+#     generate_ssh_key: yes
 
 # Add master SSH keys to nodes.
 - name: Set SSH Key File Fact
