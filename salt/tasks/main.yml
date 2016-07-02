@@ -79,26 +79,9 @@
   always_run: yes
   ignore_errors: yes
 
-- name: Set Up The Salt State Tree
-  lineinfile: |
-    dest="/etc/salt/master"
-    regexp='^#?file_roots:'
-    line="file_roots:\n\tbase:\n\t\t- {{ salt_base_dir }}"
-    state=present
-  when: type == "master"
-
-- name: Create Top File
-  template:
-    src: "top.sls.js"
-    dest: "{{ salt_base_dir }}/top.sls"
-    owner: root
-    group: root
-    mode: 0644
-
-- name: Create Basic SLS File
-  template:
-    src: "common.sls.js"
-    dest: "{{ salt_base_dir }}/common.sls"
-    owner: root
-    group: root
-    mode: 0644
+- name: Clone Salt Provisioner Repo
+  git:
+    repo: "git://github.com/ajthor/rpiomega-salt-provisioner.git"
+    dest: "{{ salt_base_dir }}"
+    clone: yes
+    recursive: yes
