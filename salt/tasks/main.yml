@@ -1,16 +1,16 @@
 ---
 # Tasks for installing and configuring salt.
 
-- name: Add Raspbian Stretch Repo
+- name: Add Salt Repo
   apt_repository: |
-    repo="deb http://archive.raspbian.org/raspbian/ stretch main"
+    repo="{{ salt_repository }}"
     state=present
 
-- name: Add Raspbian Stretch Repo To /etc/apt/sources.list
+- name: Add Salt Repo To /etc/apt/sources.list
   lineinfile: |
     dest="/etc/apt/sources.list"
     regexp='^'
-    line="deb http://archive.raspbian.org/raspbian/ stretch main"
+    line="{{ salt_repository }}"
     state=present
 
 - name: Make Jessie a Default Release
@@ -25,19 +25,19 @@
   apt: update_cache="yes"
 
 - name: Install Dependencies
-  apt: name="{{ item }}" state=present default_release=stretch
+  apt: name="{{ item }}" state=present default_release={{ salt_default_release }}
   with_items:
     - python-zmq
     - python-tornado
     - salt-common
 
 - name: Install Salt Minion
-  apt: name={{ item }} state=latest default_release=stretch
+  apt: name={{ item }} state=latest default_release={{ salt_default_release }}
   with_items:
     - salt-minion
 
 - name: Install Salt Master
-  apt: name={{ item }} state=latest default_release=stretch
+  apt: name={{ item }} state=latest default_release={{ salt_default_release }}
   with_items:
     - salt-master
   when: type == "master"
