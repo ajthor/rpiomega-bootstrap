@@ -79,9 +79,13 @@
   always_run: yes
   ignore_errors: yes
 
+- name: Ensure Salt Minion Service is Started
+  service: name=salt-minion state=started
+
 - name: Clone Salt Provisioner Repo
   git:
     repo: "git://github.com/ajthor/rpiomega-salt-provisioner.git"
     dest: "{{ salt_base_dir }}"
     clone: yes
     recursive: yes
+  when: type == "master"

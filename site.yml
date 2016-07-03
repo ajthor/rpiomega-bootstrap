@@ -17,5 +17,4 @@
   roles:
     - common
     - networking
-    - ssh
     - salt
