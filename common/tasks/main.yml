@@ -1,3 +1,5 @@
 ---
 # Common ansible role for Raspberry Pi cluster.
 
+- name: Expand Root FS
+  command: raspi-config --expand-rootfs
