@@ -42,12 +42,14 @@
     - salt-master
   when: type == "master"
 
-- name: Configure Salt With Static IP
-  lineinfile: |
-    dest="/etc/salt/master"
-    regexp='^#?interface:'
-    line="interface: {{ ip_address }}"
-    state=present
+- name: Configure /etc/salt/master
+  template:
+    src: "master.j2"
+    dest: "/etc/salt/master"
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
   when: type == "master"
 
 - name: Get Master Fingerprint
@@ -84,7 +86,7 @@
 
 - name: Clone Salt Provisioner Repo
   git:
-    repo: "git://github.com/ajthor/rpiomega-salt-provisioner.git"
+    repo: "https://github.com/ajthor/rpiomega-salt"
     dest: "{{ salt_base_dir }}"
     clone: yes
     recursive: yes
