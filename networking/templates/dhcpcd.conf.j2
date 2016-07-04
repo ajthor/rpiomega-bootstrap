@@ -42,6 +42,6 @@ nohook lookup-hostname
 
 # Static IP configuration
 interface eth0
-static ip_address={{ ip_address | ipaddr }}/24
+static ip_address={{ ip_address | ipaddr }}
 static routers={{ network['gateway'] | ipaddr }}
 static domain_name_servers=8.8.8.8 8.8.4.4
