@@ -53,24 +53,17 @@
 - name: Get Master Fingerprint
   delegate_to: "rpiomega-master.local"
   shell: salt-key -F master | grep -oP "(?<=master\.pub\:\s\s).*$"
-  always_run: True
+  always_run: yes
   register: master_fingerprint
 
-- name: Configure Salt With Master
-  lineinfile: |
-    dest="/etc/salt/minion"
-    regexp='^#?master:'
-    line="master: rpiomega-master.local"
-    state=present
-
-- name: Add Master Fingerprint to Minion
-  lineinfile: |
-    dest="/etc/salt/minion"
-    regexp='^#?master_finger:'
-    line="master_finger: '{{ master_fingerprint['stdout'] }}'"
-  notify:
-    - Restart Server
-    - Wait For Server to Restart
+- name: Configure /etc/salt/minion
+  template:
+    src: "minion.j2"
+    dest: "/etc/salt/minion"
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
 
 - name: Accept Keys On Salt Master
   delegate_to: "rpiomega-master.local"
@@ -79,12 +72,29 @@
   always_run: yes
   ignore_errors: yes
 
+<<<<<<< Updated upstream
 - name: Set Up The Salt State Tree
   lineinfile: |
     dest="/etc/salt/master"
     regexp='^#?file_roots:'
     line="file_roots:\n\tbase:\n\t\t- {{ salt_base_dir }}"
     state=present
+=======
+- name: Ensure Salt Master Service is Started
+  service: name=salt-master state=started
+  when: type == "master"
+
+- name: Ensure Salt Minion Service is Started
+  service: name=salt-minion state=started
+
+- name: Clone Salt Provisioner Repo
+  git:
+    repo: "https://github.com/ajthor/rpiomega-salt"
+    dest: "{{ salt_base_dir }}"
+    clone: yes
+    force: yes
+    recursive: yes
+>>>>>>> Stashed changes
   when: type == "master"
 
 - name: Create Top File
