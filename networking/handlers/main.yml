@@ -1,5 +1,0 @@
----
-# handlers for networking role.
-
-- name: Restart Networking
-  service: name=networking state=restarted

@@ -11,13 +11,9 @@
   with_together:
     - "{{ templates }}"
     - "{{ destinations }}"
-  notify:
-    - Restart Networking
 
 - name: Change Hostname
   hostname: name={{ hostname }}
-
-- meta: flush_handlers
 
 # - name: Update /etc/hosts
 #   replace: dest="/etc/hosts" regexp="raspberrypi" replace="{{ hostname }}"
