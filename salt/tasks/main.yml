@@ -1,9 +1,13 @@
 ---
 # Tasks for installing and configuring salt.
 
+- name: Add Salt GPG Key
+  apt_key: url="{{ salt_GPG_key }}" state=present
+
 - name: Add Salt Repo
   apt_repository: |
     repo="{{ salt_repository }}"
+    filename="saltstack"
     state=present
 
 - name: Add Salt Repo To /etc/apt/sources.list
@@ -21,23 +25,23 @@
     state=present
     create=yes
 
-- name: Update Apt Cache
-  apt: update_cache="yes"
+- name: Update & Upgrade Apt
+  apt: update_cache=yes upgrade=yes autoremove=yes
 
 - name: Install Dependencies
-  apt: name="{{ item }}" state=present default_release={{ salt_default_release }}
+  apt: name="{{ item }}" state=present install_recommends=yes
   with_items:
     - python-zmq
     - python-tornado
     - salt-common
 
 - name: Install Salt Minion
-  apt: name={{ item }} state=latest default_release={{ salt_default_release }}
+  apt: name={{ item }} state=latest install_recommends=yes
   with_items:
     - salt-minion
 
 - name: Install Salt Master
-  apt: name={{ item }} state=latest default_release={{ salt_default_release }}
+  apt: name={{ item }} state=latest install_recommends=yes
   with_items:
     - salt-master
   when: type == "master"
@@ -46,26 +50,34 @@
   template:
     src: "master.j2"
     dest: "/etc/salt/master"
-    owner: root
-    group: root
-    mode: 0644
     backup: yes
   when: type == "master"
+
+- name: Get Master Fingerprint
+  shell: salt-key -F master | grep -oP "(?<=master\.pub\:\s\s).*$"
+  always_run: yes
+  register: master_fingerprint
+  when: type == 'master'
 
 - name: Get Master Fingerprint
   delegate_to: "rpiomega-master.local"
   shell: salt-key -F master | grep -oP "(?<=master\.pub\:\s\s).*$"
   always_run: yes
   register: master_fingerprint
+  when: type == 'node'
 
 - name: Configure /etc/salt/minion
   template:
     src: "minion.j2"
     dest: "/etc/salt/minion"
-    owner: root
-    group: root
-    mode: 0644
     backup: yes
+
+- name: Ensure Salt Master Service is Started
+  service: name=salt-master state=restarted
+  when: type == "master"
+
+- name: Ensure Salt Minion Service is Started
+  service: name=salt-minion state=restarted
 
 - name: Accept Keys On Salt Master
   delegate_to: "rpiomega-master.local"
@@ -73,13 +85,6 @@
   shell: salt-key -a {{ ansible_hostname }} -y
   always_run: yes
   ignore_errors: yes
-
-- name: Ensure Salt Master Service is Started
-  service: name=salt-master state=started
-  when: type == "master"
-
-- name: Ensure Salt Minion Service is Started
-  service: name=salt-minion state=started
 
 - name: Clone Salt Provisioner Repo
   git:
