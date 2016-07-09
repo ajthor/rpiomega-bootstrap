@@ -19,3 +19,8 @@
 #   replace: dest="/etc/hosts" regexp="raspberrypi" replace="{{ hostname }}"
 #   notify:
 #     - Restart Networking
+
+# - name: Update /etc/hosts
+#   replace: dest="/etc/hosts" regexp="raspberrypi" replace="{{ hostname }}"
+#   notify:
+#     - Restart Networking
