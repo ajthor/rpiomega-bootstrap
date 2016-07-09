@@ -1,76 +1,61 @@
 ---
 # Tasks for installing and configuring salt.
 
+- name: Add Salt GPG Key
+  apt_key: url="{{ salt_GPG_key }}" state=present
+
 - name: Add Salt Repo
   apt_repository: |
     repo="{{ salt_repository }}"
+    filename="salt"
     state=present
 
-- name: Add Salt Repo To /etc/apt/sources.list
-  lineinfile: |
-    dest="/etc/apt/sources.list"
-    regexp='^'
-    line="{{ salt_repository }}"
-    state=present
-
-- name: Make Jessie a Default Release
-  lineinfile: |
-    dest="/etc/apt/apt.conf.d/10apt"
-    regexp='^'
-    line="APT::Default-Release {{ '\"' }}jessie{{ '\"' }};"
-    state=present
-    create=yes
-
-- name: Update Apt Cache
-  apt: update_cache="yes"
+- name: Update & Upgrade Apt
+  apt: update_cache=yes upgrade=yes autoremove=yes
 
 - name: Install Dependencies
-  apt: name="{{ item }}" state=present default_release={{ salt_default_release }}
+  apt: name="{{ item }}" state=present install_recommends=yes
   with_items:
     - python-zmq
     - python-tornado
     - salt-common
 
 - name: Install Salt Minion
-  apt: name={{ item }} state=latest default_release={{ salt_default_release }}
+  apt: name={{ item }} state=latest install_recommends=yes
   with_items:
     - salt-minion
 
 - name: Install Salt Master
-  apt: name={{ item }} state=latest default_release={{ salt_default_release }}
+  apt: name={{ item }} state=latest install_recommends=yes
   with_items:
     - salt-master
   when: type == "master"
 
-- name: Configure Salt With Static IP
-  lineinfile: |
-    dest="/etc/salt/master"
-    regexp='^#?interface:'
-    line="interface: {{ ip_address }}"
-    state=present
+- name: Configure /etc/salt/master
+  template:
+    src: "master.j2"
+    dest: "/etc/salt/master"
+    backup: yes
   when: type == "master"
 
 - name: Get Master Fingerprint
   delegate_to: "rpiomega-master.local"
   shell: salt-key -F master | grep -oP "(?<=master\.pub\:\s\s).*$"
-  always_run: True
+  always_run: yes
   register: master_fingerprint
 
-- name: Configure Salt With Master
-  lineinfile: |
-    dest="/etc/salt/minion"
-    regexp='^#?master:'
-    line="master: rpiomega-master.local"
-    state=present
+- name: Configure /etc/salt/minion
+  template:
+    src: "minion.j2"
+    dest: "/etc/salt/minion"
+    backup: yes
 
-- name: Add Master Fingerprint to Minion
-  lineinfile: |
-    dest="/etc/salt/minion"
-    regexp='^#?master_finger:'
-    line="master_finger: '{{ master_fingerprint['stdout'] }}'"
-  notify:
-    - Restart Server
-    - Wait For Server to Restart
+- name: Ensure Salt Master Service is Started
+  service: name=salt-master state=restarted
+  when: type == "master"
+
+- name: Ensure Salt Minion Service is Started
+  service: name=salt-minion state=restarted
 
 - name: Accept Keys On Salt Master
   delegate_to: "rpiomega-master.local"
@@ -79,26 +64,11 @@
   always_run: yes
   ignore_errors: yes
 
-- name: Set Up The Salt State Tree
-  lineinfile: |
-    dest="/etc/salt/master"
-    regexp='^#?file_roots:'
-    line="file_roots:\n\tbase:\n\t\t- {{ salt_base_dir }}"
-    state=present
+- name: Clone Salt Provisioner Repo
+  git:
+    repo: "https://github.com/ajthor/rpiomega-salt"
+    dest: "{{ salt_base_dir }}"
+    clone: yes
+    force: yes
+    recursive: yes
   when: type == "master"
-
-- name: Create Top File
-  template:
-    src: "top.sls.js"
-    dest: "{{ salt_base_dir }}/top.sls"
-    owner: root
-    group: root
-    mode: 0644
-
-- name: Create Basic SLS File
-  template:
-    src: "common.sls.js"
-    dest: "{{ salt_base_dir }}/common.sls"
-    owner: root
-    group: root
-    mode: 0644

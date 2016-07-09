@@ -1,14 +1,9 @@
 ---
 # Common ansible role for Raspberry Pi cluster.
 
-- name: Clean up Aptitude
-  apt: autoremove="yes" update_cache="yes"
+- name: Expand Root FS
+  shell: sudo raspi-config --expand-rootfs
+  run_once: yes
 
-- name: Install Core Packages
-  apt: name={{ item }} state=present
-  with_items:
-    - gcc
-    - make
-    - git
-    - python2.7
-    - python3.4
+- name: Upgrade Packages
+  apt: upgrade=yes autoremove=yes

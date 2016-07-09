@@ -17,5 +17,11 @@
   roles:
     - common
     - networking
-    - ssh
     - salt
+
+  post_tasks:
+    - name: Restart Server
+      command: sudo reboot
+      async: 1
+      poll: 0
+      ignore_errors: true
