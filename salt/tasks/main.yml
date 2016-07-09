@@ -7,23 +7,8 @@
 - name: Add Salt Repo
   apt_repository: |
     repo="{{ salt_repository }}"
-    filename="saltstack"
+    filename="salt"
     state=present
-
-- name: Add Salt Repo To /etc/apt/sources.list
-  lineinfile: |
-    dest="/etc/apt/sources.list"
-    regexp='^'
-    line="{{ salt_repository }}"
-    state=present
-
-- name: Make Jessie a Default Release
-  lineinfile: |
-    dest="/etc/apt/apt.conf.d/10apt"
-    regexp='^'
-    line="APT::Default-Release {{ '\"' }}jessie{{ '\"' }};"
-    state=present
-    create=yes
 
 - name: Update & Upgrade Apt
   apt: update_cache=yes upgrade=yes autoremove=yes
@@ -54,17 +39,10 @@
   when: type == "master"
 
 - name: Get Master Fingerprint
-  shell: salt-key -F master | grep -oP "(?<=master\.pub\:\s\s).*$"
-  always_run: yes
-  register: master_fingerprint
-  when: type == 'master'
-
-- name: Get Master Fingerprint
   delegate_to: "rpiomega-master.local"
   shell: salt-key -F master | grep -oP "(?<=master\.pub\:\s\s).*$"
   always_run: yes
   register: master_fingerprint
-  when: type == 'node'
 
 - name: Configure /etc/salt/minion
   template:
