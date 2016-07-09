@@ -14,6 +14,10 @@ the command line:
   - `master`: set the current node up as the master node.
   - `node`: set the current node up as just another node in the cluster.
 
+Before running the bootstrap script, copy the SSH key from the local machine over to the target machine using a tool such as `ssh-copy-id`.
+
+    ssh-copy-id pi@< target's current IP address >
+
 To set up the master node:
 
     ansible-playbook site.yml -i "< current IP address >," --extra-vars "ip_address=< target static IP address> hostname=rpiomega-master type=master"
@@ -24,7 +28,7 @@ To set up the minion nodes:
 
     ansible-playbook site.yml -i "< current IP address >," --extra-vars "ip_address=< target static IP address> hostname=rpiomega-node-1 type=node"
 
-What is Raspberry Pi Omega? 
+What is Raspberry Pi Omega?
 ---------------------------
 
 In set notation, Omega is the greek letter used to represent the Universal Set, and is also used to represent the first number after infinity. Raspberry Pi Omega is a cluster computing platform using the credit-card sized SBC, Raspberry Pi. It is designed as an educational and personal tool for software development, and is designed to work as a set, hence the name.
