@@ -1,0 +1,9 @@
+---
+# Default variables for salt installation.
+
+salt_GPG_key: "https://repo.saltstack.com/apt/debian/8/armhf/latest/SALTSTACK-GPG-KEY.pub"
+
+salt_repository: "deb http://repo.saltstack.com/apt/debian/8/armhf/latest jessie main"
+
+salt_base_dir: "/srv/salt"
+salt_pillar_dir: "/srv/pillar"

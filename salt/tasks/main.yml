@@ -1,0 +1,74 @@
+---
+# Tasks for installing and configuring salt.
+
+- name: Add Salt GPG Key
+  apt_key: url="{{ salt_GPG_key }}" state=present
+
+- name: Add Salt Repo
+  apt_repository: |
+    repo="{{ salt_repository }}"
+    filename="salt"
+    state=present
+
+- name: Update & Upgrade Apt
+  apt: update_cache=yes upgrade=yes autoremove=yes
+
+- name: Install Dependencies
+  apt: name="{{ item }}" state=present install_recommends=yes
+  with_items:
+    - python-zmq
+    - python-tornado
+    - salt-common
+
+- name: Install Salt Minion
+  apt: name={{ item }} state=latest install_recommends=yes
+  with_items:
+    - salt-minion
+
+- name: Install Salt Master
+  apt: name={{ item }} state=latest install_recommends=yes
+  with_items:
+    - salt-master
+  when: type == "master"
+
+- name: Configure /etc/salt/master
+  template:
+    src: "master.j2"
+    dest: "/etc/salt/master"
+    backup: yes
+  when: type == "master"
+
+- name: Get Master Fingerprint
+  delegate_to: "rpiomega-master.local"
+  shell: salt-key -F master | grep -oP "(?<=master\.pub\:\s\s).*$"
+  always_run: yes
+  register: master_fingerprint
+
+- name: Configure /etc/salt/minion
+  template:
+    src: "minion.j2"
+    dest: "/etc/salt/minion"
+    backup: yes
+
+- name: Ensure Salt Master Service is Started
+  service: name=salt-master state=restarted
+  when: type == "master"
+
+- name: Ensure Salt Minion Service is Started
+  service: name=salt-minion state=restarted
+
+- name: Accept Keys On Salt Master
+  delegate_to: "rpiomega-master.local"
+  become: yes
+  shell: salt-key -a {{ ansible_hostname }} -y
+  always_run: yes
+  ignore_errors: yes
+
+- name: Clone Salt Provisioner Repo
+  git:
+    repo: "https://github.com/ajthor/rpiomega-salt"
+    dest: "{{ salt_base_dir }}"
+    clone: yes
+    force: yes
+    recursive: yes
+  when: type == "master"

@@ -1,0 +1,9 @@
+---
+# Common ansible role for Raspberry Pi cluster.
+
+- name: Expand Root FS
+  shell: sudo raspi-config --expand-rootfs
+  run_once: yes
+
+- name: Upgrade Packages
+  apt: upgrade=yes autoremove=yes
